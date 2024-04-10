@@ -60,7 +60,7 @@ def main():
 
     c, dview, n_processes = cm.cluster.setup_cluster(
         backend="multiprocessing",
-        n_processes=24,  # number of process to use, if you go out of memory try to reduce this one
+        n_processes=12,  # number of process to use, if you go out of memory try to reduce this one
         single_thread=False,
     )
 
@@ -202,7 +202,7 @@ def main():
     # %% compute some summary images (correlation and peak to noise)
     # change swap dim if output looks weird, it is a problem with tiffile
     cn_filter, pnr = cm.summary_images.correlation_pnr(
-        images[::1], gSig=gSig[0], swap_dim=False
+        images[::5], gSig=gSig[0], swap_dim=False
     )
     # if your images file is too long this computation will take unnecessarily
     # long time and consume a lot of memory. Consider changing images[::1] to
