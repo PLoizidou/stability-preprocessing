@@ -226,7 +226,7 @@ def package_arguments_to_dict(args):
 
         # required for CNMF-E, will not change
         "nb_patch": 0,
-        "K": 0,
+        "K": None,
         "method_init": "corr_pnr",
         "center_psf": True,
         "only_init": True,
