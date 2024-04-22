@@ -10,8 +10,8 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 
-##SBATCH -o ~/slurmout/slurm.%N.%j.out # STDOUT
-##SBATCH -e ~/slurmout/slurm.%N.%j.err # STDERR
+#SBATCH -o ~/slurmout/slurm.caiman.%N.%j.out # STDOUT
+#SBATCH -e ~/slurmout/slurm.caiman.%N.%j.err # STDERR
 
 # If you require a simple way to access an entire nodes resources
 # including memory, use the exclusive switch. This could possibly
