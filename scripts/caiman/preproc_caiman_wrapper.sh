@@ -3,7 +3,7 @@
 #SBATCH --time=04:00:00                     # run job for max 4 hours
 #SBATCH --nodes=1                           # number of nodes (1 node = 1 computer)
 #SBATCH --ntasks=16                         # number of processor cores (i.e. tasks)
-#SBATCH --mem-per-cpu=8G                    # memory per CPU core
+#SBATCH --mem-per-cpu=10G                    # memory per CPU core
 
 #SBATCH -J "caiman"                         # job name
 #SBATCH --mail-user=abrotman@caltech.edu    # email address
@@ -20,11 +20,15 @@
 
 ##SBATCH --exclusive
 
+INPUT_PATH=data/miniscope2023-06-22T00_22_24_truncated.avi
+TMP_INPUT_PATH=/central/scratch/$USER/caiman
+cp $INPUT_PATH $TMP_INPUT_PATH
+
 
 source activate stability-preprocessing
 
 python scripts/caiman/preproc_caiman.py \
-    --input_path data/miniscope2023-06-22T00_22_24_truncated.avi \
+    --input_path $TMP_INPUT_PATH/miniscope2023-06-22T00_22_24_truncated.avi \
     --output_path data/caiman_output \
     --log_severity WARNING \
 
