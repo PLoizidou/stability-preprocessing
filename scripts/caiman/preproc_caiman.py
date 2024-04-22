@@ -90,12 +90,6 @@ def parse_args():
         help="Order of the autoregressive system (set p=2 if there is visible rise time in data)",
     )
     parser.add_argument(
-        "--K",
-        type=int,
-        default=None,
-        help="Number of components per patch, None for CNMFe",
-    )
-    parser.add_argument(
         "--gSig",
         type=int,
         nargs=2,
@@ -121,46 +115,16 @@ def parse_args():
         help="Amount of overlap between the patches in pixels (overlap is stride_cnmf+1)",
     )
     parser.add_argument(
-        "--rolling_sum",
-        type=bool,
-        default=True,
-        help="Flag for performing rolling sum", 
-    )
-    parser.add_argument(
-        "--only_init",
-        type=bool,
-        default=True,
-        help="Flag for only performing initialization",
-    )
-    parser.add_argument(
         "--ssub", type=int, default=1, help="Spatial subsampling during initialization"
     )
     parser.add_argument(
         "--tsub", type=int, help="Temporal subsampling during initialization"
     )
     parser.add_argument(
-        "--bas_nonneg",
-        type=bool,
-        default=True,
-        help="Enforce nonnegativity constraint on calcium traces (technically on baseline)",
-    )
-    parser.add_argument(
         "--gnb",
         type=int,
         default=-1,
         help="Number of global background components (set to 0 for lower ram, -1 for faster runtime)",
-    )
-    parser.add_argument(
-        "--low_rank_background",
-        type=bool,
-        default=None,
-        help="None leaves background of each patch intact, True performs global low-rank approximation if gnb>0",
-    )
-    parser.add_argument(
-        "--nb_patch",
-        type=int,
-        default=0,
-        help="Number of background components per patch (0 for CNMFe)",
     )
     parser.add_argument(
         "--min_corr",
@@ -177,18 +141,6 @@ def parse_args():
         default=2,
         help="Spatial subsampling factor for background",
     )
-    parser.add_argument(
-        "--method_init",
-        type=str,
-        default="corr_pnr",
-        help="Initialization method (if analyzing dendritic data see demo_dendritic.ipynb)",
-    )
-    parser.add_argument(
-        "--center_psf",
-        type=bool,
-        default=True,
-        help="Parameters for component evaluation",
-    )
 
     # component evaluation parameters
     parser.add_argument(
@@ -202,11 +154,6 @@ def parse_args():
         type=float,
         default=0.75,
         help="Space correlation threshold for accepting a component",
-    )
-    parser.add_argument(
-        "--use_cnn",
-        action="store_true",
-        help="Flag for using CNN",
     )
 
     # script-specific parameters
@@ -264,27 +211,26 @@ def package_arguments_to_dict(args):
         "pw_rigid": args.pw_rigid,
         "p": args.p,
         "nb": args.gnb,
-        "low_rank_background": args.low_rank_background,
-        "nb_patch": args.nb_patch,
         "min_corr": args.min_corr,
         "min_pnr": args.min_pnr,
         "ssub_B": args.ssub_B,
         "rf": args.rf,
-        "K": args.K,
         "gSig": np.array(args.gSig),
         "gSiz": 2 * np.array(args.gSig) + 1,
         "stride": args.stride_cnmf,
-        "method_init": args.method_init,
-        "center_psf": args.center_psf,
-        "rolling_sum": args.rolling_sum,
-        "only_init": args.only_init,
         "ssub": args.ssub,
         "tsub": args.tsub if args.tsub is not None else args.fr // 10 + 1,
         "merge_thr": args.merge_thr,
-        "bas_nonneg": args.bas_nonneg,
         "min_SNR": args.min_SNR,
         "rval_thr": args.rval_thr,
-        "use_cnn": args.use_cnn,
+
+        # required for CNMF-E, will not change
+        "nb_patch": 0,
+        "K": 0,
+        "method_init": "corr_pnr",
+        "center_psf": True,
+        "only_init": True,
+        "use_cnn": False,
     }
 
     return params.CNMFParams(
@@ -402,7 +348,11 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
     mot_correct = MotionCorrect(str(input_path), dview=cluster, **parameters.motion)
     mot_correct.motion_correct(save_movie=True)
 
+    print(f"Motion correction results saved to {mot_correct.mmap_file}")
+
     save_motion_correction_comparison(input_path, output_path, mot_correct)
+
+    print("Saved motion correction comparison to disk")
 
     border_to_0 = (
         0 if mot_correct.border_nan == "copy" else mot_correct.border_to_0
@@ -415,13 +365,19 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
         dview=cluster,
     )
 
+    print(f"Memory-mapped file saved to {mc_memmapped_fname}")
+
     Yr, dims, num_frames = cm.load_memmap(mc_memmapped_fname)
     images = np.reshape(
         Yr.T, [num_frames] + list(dims), order="F"
     )  # reshape frames in standard 3d format (T x X x Y)
 
+    print("Loaded memory-mapped file into memory for CNMF processing")
+
     cnmf_model = cnmf.CNMF(num_processes, params=parameters, dview=cluster)
     cnmf_fit = cnmf_model.fit(images)
+
+    print("CNMF-E model fit to data")
 
     correlation_image, _ = cm.summary_images.correlation_pnr(
         images[::max(num_frames//1000, 1)], # subsample if needed
@@ -429,15 +385,14 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
         swap_dim=False,
     ) # change swap dim if output looks weird, it is a problem with tiffile
 
-    print("Thresholds to be used for evaluate_components()")
-    print(f"min_SNR = {cnmf_fit.params.quality['min_SNR']}")
-    print(f"rval_thr = {cnmf_fit.params.quality['rval_thr']}")
-    print()
-
     cnmf_fit.estimates.evaluate_components(images, cnmf_fit.params, dview=cluster)
 
     print(
         f"Num accepted/rejected: {len(cnmf_fit.estimates.idx_components)}, {len(cnmf_fit.estimates.idx_components_bad)}"
+    )
+
+    cnmf_fit.estimates.detrend_df_f(
+        quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False
     )
 
     save_path = output_path / "cnmfe_results.hdf5"
