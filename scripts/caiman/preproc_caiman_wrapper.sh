@@ -2,8 +2,9 @@
 
 #SBATCH --time=04:00:00                     # run job for max 4 hours
 #SBATCH --nodes=1                           # number of nodes (1 node = 1 computer)
-#SBATCH --ntasks=16                         # number of processor cores (i.e. tasks)
-#SBATCH --mem-per-cpu=10G                    # memory per CPU core
+#SBATCH --ntasks=1                          # number of processor cores (i.e. tasks)
+#SBATCH --cpus-per-task=32                   # number of OpenMP threads
+#SBATCH --mem-per-cpu=6G                    # memory per CPU core
 
 #SBATCH -J "caiman"                         # job name
 #SBATCH --mail-user=abrotman@caltech.edu    # email address

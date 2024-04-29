@@ -298,9 +298,9 @@ def setup(use_log_file: bool, log_severity: Path, delete_logs: bool, synchronous
         os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
         print(
-            f"You have {psutil.cpu_count()} CPUs available in your current environment, using {psutil.cpu_count() - 1} for parallel processing."
+            f"You have {psutil.cpu_count()} CPUs available in your current environment, using {psutil.cpu_count() - 1 if  psutil.cpu_count() <= 32 else 31} for parallel processing."
         )
-        num_processors_to_use = None
+        num_processors_to_use = None if psutil.cpu_count() <= 32 else 31
 
     if "cluster" in locals():  # 'locals' contains list of current local variables
         print("Closing previous cluster")
