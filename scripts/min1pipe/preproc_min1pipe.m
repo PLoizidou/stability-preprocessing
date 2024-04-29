@@ -11,8 +11,8 @@ ismc = true; %%% run movement correction %%%
 flag = 1; %%% use auto seeds selection; 2 if manual %%%
 isvis = true; %%% do visualize %%%
 ifpost = true; %%% set true if want to see post-process %%%
-path_name = '/home/abrotman/stability-preprocessing/MIN1PIPE/demo/';
-file_name = 'demo_data.tif';
+path_name = '/home/abrotman/stability-preprocessing/data/';
+file_name = 'miniscope2023-06-22T00_22_24_truncated.avi';
 
 
 %% main program %%
