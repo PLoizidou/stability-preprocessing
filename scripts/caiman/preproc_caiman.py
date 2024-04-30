@@ -391,9 +391,9 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
         f"Num accepted/rejected: {len(cnmf_fit.estimates.idx_components)}, {len(cnmf_fit.estimates.idx_components_bad)}"
     )
 
-    cnmf_fit.estimates.detrend_df_f(
-        quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False
-    )
+    # cnmf_fit.estimates.detrend_df_f(
+    #     quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False, detrend_only=True
+    # )
 
     save_path = output_path / "cnmfe_results.hdf5"
     cnmf_fit.estimates.Cn = (
