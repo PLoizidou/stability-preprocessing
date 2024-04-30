@@ -161,3 +161,4 @@ cython_debug/
 
 # Project specific ignores
 data/
+MIN1PIPE/
