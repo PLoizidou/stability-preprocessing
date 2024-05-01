@@ -12,7 +12,7 @@ flag = 1; %%% use auto seeds selection; 2 if manual %%%
 isvis = true; %%% do visualize %%%
 ifpost = true; %%% set true if want to see post-process %%%
 path_name = '/home/abrotman/stability-preprocessing/data/';
-file_name = 'miniscope2023-06-22T00_22_24_truncated.avi';
+file_name = 'miniscope2023-06-22T00_22_24_truncated.tif';
 
 
 %% main program %%
