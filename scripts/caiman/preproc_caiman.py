@@ -129,11 +129,11 @@ def parse_args():
     parser.add_argument(
         "--min_corr",
         type=float,
-        default=0.7,
+        default=0.8,
         help="Min peak value from correlation image",
     )
     parser.add_argument(
-        "--min_pnr", type=float, default=8, help="Min peak to noise ratio"
+        "--min_pnr", type=float, default=4.4, help="Min peak to noise ratio"
     )
     parser.add_argument(
         "--ssub_B",
@@ -146,7 +146,7 @@ def parse_args():
     parser.add_argument(
         "--min_SNR",
         type=float,
-        default=1.5,
+        default=2.0,
         help="Signal to noise ratio for accepting a component",
     )
     parser.add_argument(
