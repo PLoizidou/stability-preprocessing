@@ -99,7 +99,7 @@ def parse_args():
     parser.add_argument(
         "--merge_thr",
         type=float,
-        default=0.8,
+        default=0.65,
         help="Merging threshold, max correlation allowed",
     )
     parser.add_argument(
@@ -133,7 +133,7 @@ def parse_args():
         help="Min peak value from correlation image",
     )
     parser.add_argument(
-        "--min_pnr", type=float, default=4.4, help="Min peak to noise ratio"
+        "--min_pnr", type=float, default=6.5, help="Min peak to noise ratio"
     )
     parser.add_argument(
         "--ssub_B",
@@ -298,9 +298,9 @@ def setup(use_log_file: bool, log_severity: Path, delete_logs: bool, synchronous
         os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
         print(
-            f"You have {psutil.cpu_count()} CPUs available in your current environment, using {psutil.cpu_count() - 1 if  psutil.cpu_count() <= 32 else 31} for parallel processing."
+            f"You have {psutil.cpu_count()} CPUs available in your current environment, using {psutil.cpu_count() - 1 if  psutil.cpu_count() <= 24 else 24} for parallel processing."
         )
-        num_processors_to_use = None if psutil.cpu_count() <= 32 else 31
+        num_processors_to_use = None if psutil.cpu_count() <= 24 else 24
 
     if "cluster" in locals():  # 'locals' contains list of current local variables
         print("Closing previous cluster")
@@ -385,15 +385,17 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
         swap_dim=False,
     ) # change swap dim if output looks weird, it is a problem with tiffile
 
+    print("Computed correlation image")
+
     cnmf_fit.estimates.evaluate_components(images, cnmf_fit.params, dview=cluster)
 
     print(
         f"Num accepted/rejected: {len(cnmf_fit.estimates.idx_components)}, {len(cnmf_fit.estimates.idx_components_bad)}"
     )
 
-    # cnmf_fit.estimates.detrend_df_f(
-    #     quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False, detrend_only=True
-    # )
+    cnmf_fit.estimates.detrend_df_f(
+        quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False, detrend_only=True
+    )
 
     save_path = output_path / "cnmfe_results.hdf5"
     cnmf_fit.estimates.Cn = (
