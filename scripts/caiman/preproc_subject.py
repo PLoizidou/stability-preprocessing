@@ -22,7 +22,8 @@ def run_caiman_preprocessing(input_dir, output_base_dir, min_corr, min_pnr, min_
             '--min_pnr', str(min_pnr),
             '--min_SNR', str(min_SNR),
             '--rval_thr', str(rval_thr),
-            '--gnb', str(gnb)
+            '--gnb', str(gnb),
+            '--tsub', '1',
         ]
         # Run the command
         print(f'Running command: {" ".join(command)}')
