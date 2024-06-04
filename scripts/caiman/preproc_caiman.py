@@ -345,6 +345,7 @@ def save_motion_correction_comparison(input_path: Path, output_path: Path, mot_c
 
 
 def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, cluster, num_processes: int):
+    print(parameters)
     mot_correct = MotionCorrect(str(input_path), dview=cluster, **parameters.motion)
     mot_correct.motion_correct(save_movie=True)
 
