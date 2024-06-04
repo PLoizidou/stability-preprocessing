@@ -16,6 +16,8 @@ import caiman as cm
 from caiman.motion_correction import MotionCorrect
 from caiman.source_extraction.cnmf import cnmf, params
 
+from pynwb import NWBHDF5IO
+
 
 def parse_args():
     parser = ArgumentParser(
@@ -164,12 +166,6 @@ def parse_args():
         help="Path to input session",
     )
     parser.add_argument(
-        "--output_path",
-        type=str,
-        required=True,
-        help="Path to output session",
-    )
-    parser.add_argument(
         "--log_severity",
         type=str,
         default="WARNING",
@@ -197,9 +193,9 @@ def parse_args():
     return args
 
 
-def package_arguments_to_dict(args):
+def package_arguments_to_dict(args, video_path: Path):
     parameter_dict = {
-        "fnames": args.input_path,
+        "fnames": str(video_path),
         "fr": args.fr,
         "dxy": args.dxy,
         "decay_time": args.decay_time,
@@ -241,7 +237,14 @@ def package_arguments_to_dict(args):
 def get_params():
     args = parse_args()
 
-    cnmf_params = package_arguments_to_dict(args)
+    input_path = Path(args.input_path)
+
+    with NWBHDF5IO(input_path, 'r') as io:
+        nwbfile = io.read()
+        external_name = nwbfile.acquisition["gcamp"].external_file[0]
+        video_path = input_path.parent / external_name
+
+    cnmf_params = package_arguments_to_dict(args, video_path)
 
     if args.log_severity == "DEBUG":
         log_severity = logging.DEBUG
@@ -257,14 +260,10 @@ def get_params():
         raise ValueError(
             "Invalid log severity level. Please choose from DEBUG, INFO, WARNING, ERROR, CRITICAL"
         )
-    
-    output_path = Path(args.output_path)
-    if not output_path.exists():
-        output_path.mkdir(parents=True)
     return (
         cnmf_params,
-        Path(args.input_path),
-        output_path,
+        input_path,
+        video_path,
         log_severity,
         args.use_log_file,
         args.delete_logs,
@@ -344,13 +343,13 @@ def save_motion_correction_comparison(input_path: Path, output_path: Path, mot_c
     ).save(str(output_path / "motion_correction_comparison.avi"))
 
 
-def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, cluster, num_processes: int):
-    mot_correct = MotionCorrect(str(input_path), dview=cluster, **parameters.motion)
+def preproc(parameters: params.CNMFParams, nwb_path: Path, video_path: Path, cluster, num_processes: int):
+    mot_correct = MotionCorrect(str(video_path), dview=cluster, **parameters.motion)
     mot_correct.motion_correct(save_movie=True)
 
     print(f"Motion correction results saved to {mot_correct.mmap_file}")
 
-    save_motion_correction_comparison(input_path, output_path, mot_correct)
+    save_motion_correction_comparison(video_path, nwb_path.parent, mot_correct)
 
     print("Saved motion correction comparison to disk")
 
@@ -397,18 +396,21 @@ def preproc(parameters: params.CNMFParams, input_path: Path, output_path: Path, 
         quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False, detrend_only=True
     )
 
-    save_path = output_path / "cnmfe_results.hdf5"
     cnmf_fit.estimates.Cn = (
         correlation_image  # squirrel away correlation image with cnmf object
     )
-    cnmf_fit.save(str(save_path))
-    print(f"Results saved to {save_path}")
+    cnmf_fit.estimates.save_NWB(
+        nwb_path,
+        imaging_rate=parameters.data["fr"] / parameters.data["tsub"],
+        # raw_data_file=str(video_path),
+    )
+    print(f"Results saved!")
 
 
 def main():
-    cnmf_params, input_path, output_path, log_severity, use_log_file, delete_logs, synchronous = get_params()
+    cnmf_params, nwb_path, video_path, log_severity, use_log_file, delete_logs, synchronous = get_params()
     cluster, n_processes = setup(use_log_file, log_severity, delete_logs, synchronous)
-    preproc(cnmf_params, input_path, output_path, cluster, n_processes)
+    preproc(cnmf_params, nwb_path, video_path, cluster, n_processes)
     cleanup(cluster, delete_logs)
     print("Done!")
 
