@@ -402,7 +402,7 @@ def preproc(parameters: params.CNMFParams, nwb_path: Path, video_path: Path, clu
     )
     cnmf_fit.estimates.save_NWB(
         nwb_path,
-        imaging_rate=parameters.data["fr"] / parameters.data["tsub"],
+        imaging_rate=parameters.data["fr"] / parameters.init["tsub"],
         # raw_data_file=str(video_path),
     )
     print(f"Results saved!")
