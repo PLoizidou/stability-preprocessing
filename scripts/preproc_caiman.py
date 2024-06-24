@@ -17,6 +17,7 @@ from caiman.motion_correction import MotionCorrect
 from caiman.source_extraction.cnmf import cnmf, params
 
 from pynwb import NWBHDF5IO
+from neuroconv.datainterfaces import CaimanSegmentationInterface
 
 
 def parse_args():
@@ -400,10 +401,15 @@ def preproc(parameters: params.CNMFParams, nwb_path: Path, video_path: Path, clu
     cnmf_fit.estimates.Cn = (
         correlation_image  # squirrel away correlation image with cnmf object
     )
-    cnmf_fit.estimates.save_NWB(
-        nwb_path,
-        imaging_rate=parameters.data["fr"] / parameters.init["tsub"],
-        # raw_data_file=str(video_path),
+
+    caiman_results_path = nwb_path.parent / "caiman" / "caiman_results.hdf5"
+    caiman_results_path.parent.mkdir(exist_ok=True, parents=True)
+    cnmf_fit.save(str(caiman_results_path))
+
+    nwb_conv_interface = CaimanSegmentationInterface(file_path=str(caiman_results_path), verbose=False)
+    nwb_conv_interface.add_to_nwbfile(
+        nwbfile=str(nwb_path),
+        plane_segmentation_name="caiman",
     )
     print(f"Results saved!")
 
