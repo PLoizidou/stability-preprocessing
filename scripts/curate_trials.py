@@ -80,6 +80,39 @@ def organize_sessions(base_dir, start_date=None, animals=None):
     return sessions
 
 
+def curate_sessions(sessions, output_dir):
+    """
+    Save each session to an NWB file.
+
+    Args:
+        sessions (dict): The organized sessions dictionary.
+        output_dir (str): The directory to save the NWB files.
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    for animal_id, dates in sessions.items():
+        sub_str = f"sub-{animal_id}"
+        for date, times in dates.items():
+            print(f"Saving session on {date} for animal {animal_id}")
+            for time, files in times.items():
+                session_id = f"ses-{date.replace('-', '')}T{time.replace('_', '')}"
+                timestamps_df = pd.read_csv([f for f in files if f.name.endswith(".csv")][0], header=None)
+                timestamps_df["timestamps"] = pd.to_datetime(timestamps_df[0])
+                timestamps = timestamps_df["timestamps"]
+                start_time = timestamps[0]
+                timestamps = (timestamps - start_time).dt.total_seconds().values
+
+                for file in files:
+                    new_file = output_path / sub_str / session_id / file.name
+                    new_file.parent.mkdir(parents=True, exist_ok=True)
+                    print(f"Copying {file} to {new_file}")
+                    shutil.copy(file, new_file)
+                    
+                    
+
+
+
 def save_sessions_to_nwb(sessions, output_dir):
     """
     Save each session to an NWB file.
@@ -216,14 +249,18 @@ def main():
     parser.add_argument("output_dir", type=str, help="The directory to save the NWB files.")
     parser.add_argument('--start_date', type=str, help="The start date in 'YYYY-MM-DD' format. Only sessions after this date will be included.", default=None)
     parser.add_argument('--animals', type=str, nargs='*', help="List of animal IDs to include. Only files for these animals will be processed.", default=None)
+    parser.add_argument("--save_nwb", action='store_true', help="Save the organized sessions to NWB files.")
     
     args = parser.parse_args()
     
     # Call the organize_sessions function with parsed arguments
     organized_sessions = organize_sessions(args.base_dir, args.start_date, args.animals)
 
-    # Save the organized sessions to NWB files
-    save_sessions_to_nwb(organized_sessions, args.output_dir)
+    if not args.save_nwb:
+        curate_sessions(organized_sessions, args.output_dir)
+    else:
+        # Save the organized sessions to NWB files, same directory structure
+        save_sessions_to_nwb(organized_sessions, args.output_dir)
 
 if __name__ == "__main__":
     main()
