@@ -1,3 +1,4 @@
+import os
 import argparse as ap
 import h5py
 
@@ -35,13 +36,22 @@ def main(config_path: Path, nwb_path: Path, video_key: str, storage_key: str, ma
             subject_name=subject,
             verbose=False,
         )
-        metadata = dlc_interface.get_metadata()
-        metadata
-        dlc_interface.add_to_nwbfile(nwbfile=nwb, metadata=metadata)
+        dlc_interface.add_to_nwbfile(nwbfile=nwb)
+
+        # Update timestamps since interface doesn't accept user generated
+        pose_series = nwb.processing["behavior"].data_interfaces["PoseEstimation"].pose_estimation_series
+        for pose_key in pose_series.keys():
+            print(f"Resetting timestamps for {pose_key} to gcamp timestamps")
+            pose_series[pose_key].timestamps[:] = nwb.acquisition[video_key].timestamps[:]
+
         io.write(nwb)
 
     with h5py.File(nwb_path, "r+") as nwb_file:
-        nwb_file["processing/behavior"].move("PoseEstimation", storage_key)
+        nwb_file.move(
+            "processing/behavior/PoseEstimation",
+            os.path.join("processing/behavior", storage_key),
+        )
+
     print(f'Added pose data to NWB file: {nwb_path}')
     print(f'Pose data stored in: processing/behavior/{storage_key}')
 
