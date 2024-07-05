@@ -22,7 +22,9 @@ if [ $# -eq 0 ]; then
 fi
 
 # Assign the session folder argument to a variable
-session_folder=$1
+miniscope_file=$1
+home_video_file=$2
+linear_video_file=$3
 
 # Find the path to Conda
 CONDA_PATH=$(which conda)
@@ -50,43 +52,43 @@ fi
 unset __conda_setup
 
 # Run DLC pose estimation
+# TODO: Add similar configuration for the T-maze
 
 conda activate dlc # Activate the DLC environment
 
 python scripts/estimate_pose.py \
     $LINEAR_CONFIG_FILE \
-    $session_folder \
-    $LINEAR_HDF5_KEY \
+    $linear_video_file \
     --gpu_id 0
 
 python scripts/estimate_pose.py \
     $HOME_CONFIG_FILE \
-    $session_folder \
-    $HOME_HDF5_KEY \
+    $home_video_file \
     --gpu_id 0
 
 conda deactivate # Deactivate the DLC environment
 
 conda activate stability-preprocessing # Activate the stability-preprocessing environment
 
-# Curate the pose data in NWB format
-python scripts/curate_pose_nwb.py \
-    $LINEAR_CONFIG_FILE \
-    $session_folder \
-    $LINEAR_HDF5_KEY \
-    $LINEAR_POSE_KEY \
-    --match_regex $LINEAR_REGEX
+# TODO: Uncomment this if saving Caiman to NWB gets figured out
+# # Curate the pose data in NWB format
+# python scripts/curate_pose_nwb.py \
+#     $LINEAR_CONFIG_FILE \
+#     $session_folder \
+#     $LINEAR_HDF5_KEY \
+#     $LINEAR_POSE_KEY \
+#     --match_regex $LINEAR_REGEX
 
-python scripts/curate_pose_nwb.py \
-    $HOME_CONFIG_FILE \
-    $session_folder \
-    $HOME_HDF5_KEY \
-    $HOME_POSE_KEY \
-    --match_regex $HOME_REGEX
+# python scripts/curate_pose_nwb.py \
+#     $HOME_CONFIG_FILE \
+#     $session_folder \
+#     $HOME_HDF5_KEY \
+#     $HOME_POSE_KEY \
+#     --match_regex $HOME_REGEX
 
 # Preprocess the session data
 python scripts/preproc_caiman.py \
---input_path $session_folder  \
+--input_path $miniscope_file  \
 --min_corr 0.85 \
 --min_pnr 6.5 \
 --min_SNR 3 \
