@@ -11,5 +11,5 @@ dependencies:
   - seaborn=0.13.0
   - jupyter=1.0.0
   - ipykernel=6.29.3
-  - caiman=1.10.4
+  - caiman=1.11
   - black=24.3.0
