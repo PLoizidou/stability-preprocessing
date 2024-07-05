@@ -8,7 +8,7 @@ To get started, run
 to install and activate the conda environment.
 
 ## Components
-[CaImAn](https://caiman.readthedocs.io/en/latest/ "CaImAn docs") is used for calcium data extraction via the CNMF-E algorithm.
+[Caiman](https://caiman.readthedocs.io/en/latest/ "Caiman docs") is used for calcium data extraction via the CNMF-E algorithm.
 
 [DeepLabCut](https://deeplabcut.github.io/DeepLabCut/README.html "DeepLabCut docs") is used for pose estimation.
 
@@ -34,8 +34,8 @@ The best way of doing this would be to incorporate something like [Mesmerize](ht
 
 **NOTE:** Using a subject's parameters requires providing them as arguments to downstream scripts or (even worse) explicityly changing bash scripts. The ideal way to manage this situation is by [setting up .yaml configs](https://stackoverflow.com/questions/38404633/reading-yaml-config-file-in-python-and-using-variables) for each subject that contain all the arguments for CaImAn. This will both help record the parameters and ensure there's a single soure of truth for processing parameters.
 
-### NWB curation
-Data aren't in NWB format when collected, and need to be converted. `scripts/curate_nwb.py` will do this, and can be run as:
+### Session curation
+Data are grouped by mouse when collected, and it will be easier from an organization and processing perspective to group them by session date/time. `scripts/curate_trials.py` will do this, and can be run as:
 ```
 python scripts/curate_nwb.py path/to/raw/data/root path/to/nwb/data/root --start_data <YYYY-MM-DD> --animals <Animal1> <Animal2>
 ```
@@ -62,29 +62,27 @@ path/to/nwb/data/root/
             miniscope2024-05-28T13_15_08.avi
             timestamps2024-05-28T13_15_08.csv
             behavior2024-05-28T13_15_08.avi
-            sub-Animal1_ses-20240528T131508.nwb
         ses-20240529T131508/
             miniscope2024-05-29T13_15_08.avi
             timestamps2024-05-29T13_15_08.csv
             behavior2024-05-29T13_15_08.avi
-            sub-Animal1_ses-20240529T131508.nwb
         ...
     Animal2/
         ...
 ```
-Which will contain all the same data and can be used for subsequent analyses.
+Which will contain all the same data and can be used for subsequent analyses. Optionally, a `--save_nwb` flag will save an additional `.nwb` file containing references the necessary files and additional trial info.
 
 ### Process
-**NOTE**: The script `scripts/preproc_session.sh` will run this full pipeline given the path to an NWB file `bash scripts/preproc_session.sh path/to/file.nwb`. This also provides an example of how to run each of the scripts individually, but you should read the rest of this section before working with this script. Running it does not require you to activate a conda environment beforehand. This is handled internally.
+**NOTE**: The script `scripts/preproc_session.sh` will run this full pipeline given the path to an NWB file `bash scripts/preproc_session.sh path/to/miniscope path/to/home_video path/to/linear_video`. This also provides an example of how to run each of the scripts individually, but you should read the rest of this section before working with this script. Running it does not require you to activate a conda environment beforehand. This is handled internally.
 
-Once you've selected parameters for your subject, you can preprocess your data using `scripts/preproc_caiman.py`. Assuming you're running it from the home directory, you can run ```python scripts/preproc_caiman.py --input_path <your-avi-file> --output_path <your-session-output-file>```. You can view additional parameters by running ```python scripts/preproc_caiman.py --help```. This will preprocess one `.nwb` session file and populate the same `.nwb` file with all caiman outputs.
+Once you've selected parameters for your subject, you can preprocess your data using `scripts/preproc_caiman.py`. Assuming you're running it from the home directory, you can run ```python scripts/preproc_caiman.py --input_path <your-avi-file> --output_path <your-session-output-file>```. You can view additional parameters by running ```python scripts/preproc_caiman.py --help```. Outputs will be stored in `caiman/caiman_results.hdf5` within the trial directory.
 
-A pair of scripts exist to run DLC to extract pose and convert those outputs to NWB format. Those can be found in `scripts/estimate_pose.py` and `scripts/curate_pose_nwb.py`, respectively. Raw DLC outputs will be stored in a `/dlc` directory in the same directory as the NWB file after `scripts/estimate_pose.py` and then moved to the original NWB file after `scripts/curate_pose_nwb.py`. They are run as:
+A pair of scripts exist to run DLC to extract pose and convert those outputs to NWB format. Those can be found in `scripts/estimate_pose.py` and `scripts/curate_pose_nwb.py`, respectively. Raw DLC outputs will be stored in a `/dlc` directory in the same directory as the NWB file after `scripts/estimate_pose.py` and then moved to an NWB file after `scripts/curate_pose_nwb.py`. They are run as:
 
 ```
-python scripts/estimate_pose.py path/to/dlc/config path/to/my/data.nwb behavioral_acquisition_key --gpu_id 0
+python scripts/estimate_pose.py path/to/dlc/config path/to/my/video.avi --gpu_id 0
 ``` 
-and 
+and, *optionally*,
 ```
 python scripts/curate_pose_nwb.py path/to/dlc/config path/to/my/data.nwb behavioral_acquisition_key pose_storage_key --match_regex regex_for_dlc_output
 ```
@@ -95,4 +93,4 @@ where behavioral_acquisition_key and pose_storage_key are the names the data has
 When you'd like to visualize the components and their traces, run the `scripts/visualize_caiman_results.ipynb` notebook. Once you set the results path, select run all. The notebook shows a subset of components because of memory constraints.
 
 ## Downstream analyses
-See `scripts/downstream.ipynb` to see what an NWB file looks like after preprocessing, and how to extract the data of interest.
+See `scripts/downstream.ipynb` to see how to extract the data of interest.

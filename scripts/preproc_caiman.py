@@ -17,7 +17,7 @@ from caiman.motion_correction import MotionCorrect
 from caiman.source_extraction.cnmf import cnmf, params
 
 from pynwb import NWBHDF5IO
-from neuroconv.datainterfaces import CaimanSegmentationInterface
+from pynwb.ophys import DfOverF
 
 
 def parse_args():
@@ -187,6 +187,11 @@ def parse_args():
         action="store_true",
         help="Flag for synchronous processing (useful for debugging)",
     )
+    parser.add_argument(
+        "--save_nwb",
+        action="store_true",
+        help="Save caiman output to an NWB file. Unfortunately, this isn't implemented yet :/"
+    )
 
     args = parser.parse_args()
     for arg in vars(args):
@@ -240,12 +245,7 @@ def get_params():
 
     input_path = Path(args.input_path)
 
-    with NWBHDF5IO(input_path, 'r') as io:
-        nwbfile = io.read()
-        external_name = nwbfile.acquisition["gcamp"].external_file[0]
-        video_path = input_path.parent / external_name
-
-    cnmf_params = package_arguments_to_dict(args, video_path)
+    cnmf_params = package_arguments_to_dict(args, input_path)
 
     if args.log_severity == "DEBUG":
         log_severity = logging.DEBUG
@@ -264,7 +264,6 @@ def get_params():
     return (
         cnmf_params,
         input_path,
-        video_path,
         log_severity,
         args.use_log_file,
         args.delete_logs,
@@ -272,7 +271,7 @@ def get_params():
     )
 
 
-def setup(use_log_file: bool, log_severity: Path, delete_logs: bool, synchronous: bool):
+def setup(use_log_file: bool, log_severity: Path, synchronous: bool):
     if use_log_file:
         current_datetime = datetime.datetime.now().strftime("_%Y%m%d_%H%M%S")
         log_filename = 'caiman' + current_datetime + '.log'
@@ -344,14 +343,14 @@ def save_motion_correction_comparison(input_path: Path, output_path: Path, mot_c
     ).save(str(output_path / "motion_correction_comparison.avi"))
 
 
-def preproc(parameters: params.CNMFParams, nwb_path: Path, video_path: Path, cluster, num_processes: int):
+def preproc(parameters: params.CNMFParams, video_path: Path, cluster, num_processes: int, save_nwb=False):
     print(parameters)
     mot_correct = MotionCorrect(str(video_path), dview=cluster, **parameters.motion)
     mot_correct.motion_correct(save_movie=True)
 
     print(f"Motion correction results saved to {mot_correct.mmap_file}")
 
-    save_motion_correction_comparison(video_path, nwb_path.parent, mot_correct)
+    save_motion_correction_comparison(video_path, video_path.parent, mot_correct)
 
     print("Saved motion correction comparison to disk")
 
@@ -402,22 +401,53 @@ def preproc(parameters: params.CNMFParams, nwb_path: Path, video_path: Path, clu
         correlation_image  # squirrel away correlation image with cnmf object
     )
 
-    caiman_results_path = nwb_path.parent / "caiman" / "caiman_results.hdf5"
+    # save caiman format
+    caiman_results_path = video_path.parent / "caiman" / "caiman_results.hdf5"
     caiman_results_path.parent.mkdir(exist_ok=True, parents=True)
     cnmf_fit.save(str(caiman_results_path))
+    print(f"Results saved to {str(caiman_results_path)}!")
 
-    nwb_conv_interface = CaimanSegmentationInterface(file_path=str(caiman_results_path), verbose=False)
-    nwb_conv_interface.add_to_nwbfile(
-        nwbfile=str(nwb_path),
-        plane_segmentation_name="caiman",
-    )
-    print(f"Results saved!")
+    if save_nwb:
+
+        raise NotImplementedError(
+            "Unfortunately, saving caiman results to an NWB file isn't fully implemented yet :/"
+        )
+
+        # Hacky change to cnmf object to allow builtin save
+        cnmf_model.estimates.cnn_preds = None
+        cnmf_model.estimates.b = np.zeros((cnmf_model.estimates.A.shape[0], 1))
+        cnmf_model.estimates.f = np.zeros((1, cnmf_model.estimates.C.shape[1]))
+
+        # save nwb
+        cnmf_model.estimates.save_NWB(
+            str(nwb_path), 
+            imaging_series_name="gcamp",
+            imaging_rate=parameters.data["fr"],
+            imaging_plane_name="ImagingPlane",
+        )
+
+        # Add F_dff later since builtin save doesn't
+        with NWBHDF5IO(str(nwb_path), 'r+') as io:
+            nwb = io.read()
+            f_dff = DfOverF()
+            f_dff.add_roi_response_series(
+                "f_dff",
+                data=cnmf_model.estimates.F_dff,
+                rois=nwb.processing["ophys"].get("Fluorescence").roi_response_series["RoiResponseSeries"].rois,
+                unit="N/A",
+                timestamps=nwb.acquisition["gcamp"].timestamps,
+            )
+            nwb.processing["ophys"].add_data_interface(f_dff)
+            io.write(nwb)
+            io.close()
+        
+        print(f"Results saved!")
 
 
 def main():
-    cnmf_params, nwb_path, video_path, log_severity, use_log_file, delete_logs, synchronous = get_params()
-    cluster, n_processes = setup(use_log_file, log_severity, delete_logs, synchronous)
-    preproc(cnmf_params, nwb_path, video_path, cluster, n_processes)
+    cnmf_params, input_path, log_severity, use_log_file, delete_logs, synchronous = get_params()
+    cluster, n_processes = setup(use_log_file, log_severity, synchronous)
+    preproc(cnmf_params, input_path, cluster, n_processes)
     cleanup(cluster, delete_logs)
     print("Done!")
 
