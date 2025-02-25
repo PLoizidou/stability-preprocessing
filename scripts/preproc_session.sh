@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CAIMAN_DATA=/media/toor/Elements/caiman_data
+export CAIMAN_DATA=/home/toor/Desktop/caiman_data
 
 LINEAR_CONFIG_FILE="/home/toor/Desktop/linear-abrotman-2024-05-29/config.yaml"
 HOME_CONFIG_FILE="/home/toor/Desktop/home-abrotman-2024-05-29/config.yaml"
@@ -21,7 +21,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# Assign the session folder argument to a variable
+# Assign the session folder argument to a variable (value of $1, meaning it represents the first argument provided when the script is run.)
 miniscope_file=$1
 home_video_file=$2
 linear_video_file=$3
@@ -50,12 +50,13 @@ else
     fi
 fi
 unset __conda_setup
+echo "The path is: $PATH"
 
 # Run DLC pose estimation
 # TODO: Add similar configuration for the T-maze
 
 conda activate dlc # Activate the DLC environment
-
+echo "The path is: $PATH"
 python scripts/estimate_pose.py \
     $LINEAR_CONFIG_FILE \
     $linear_video_file \
@@ -69,6 +70,8 @@ python scripts/estimate_pose.py \
 conda deactivate # Deactivate the DLC environment
 
 conda activate stability-preprocessing # Activate the stability-preprocessing environment
+
+
 
 # TODO: Uncomment this if saving Caiman to NWB gets figured out
 # # Curate the pose data in NWB format

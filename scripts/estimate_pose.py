@@ -9,7 +9,7 @@ def handle_args():
     parser = ap.ArgumentParser(description='Estimate pose using DeepLabCut')
     parser.add_argument('config', type=str, help='Path to the config.yaml file')
     parser.add_argument('video_path', type=str, help='Path to the NWB file')
-    parser.add_argument("--gpu_id", type=int, default=None, help="GPU ID to use")
+    parser.add_argument("--gpu_id", type=int, default=0, help="GPU ID to use")
     parser.add_argument("--save_summary", action='store_true', help="Save a summary of the results")
     return parser.parse_args()
 

@@ -37,7 +37,9 @@ The best way of doing this would be to incorporate something like [Mesmerize](ht
 ### Session curation
 Data are grouped by mouse when collected, and it will be easier from an organization and processing perspective to group them by session date/time. `scripts/curate_trials.py` will do this, and can be run as:
 ```
-python scripts/curate_nwb.py path/to/raw/data/root path/to/nwb/data/root --start_data <YYYY-MM-DD> --animals <Animal1> <Animal2>
+cd scripts
+
+python curate_trials.py '/media/toor/Seagate Portable Drive/AGING MICE/' '/media/toor/Seagate Portable Drive/AgingMiceNWB' --start_date 2024-05-20 --animals Mouse163
 ```
 This assumes your folder structure is 
 ```
@@ -77,7 +79,7 @@ Which will contain all the same data and can be used for subsequent analyses. Op
 
 Once you've selected parameters for your subject, you can preprocess your data using `scripts/preproc_caiman.py`. Assuming you're running it from the home directory, you can run ```python scripts/preproc_caiman.py --input_path <your-avi-file> --output_path <your-session-output-file>```. You can view additional parameters by running ```python scripts/preproc_caiman.py --help```. Outputs will be stored in `caiman/caiman_results.hdf5` within the trial directory.
 
-A pair of scripts exist to run DLC to extract pose and convert those outputs to NWB format. Those can be found in `scripts/estimate_pose.py` and `scripts/curate_pose_nwb.py`, respectively. Raw DLC outputs will be stored in a `/dlc` directory in the same directory as the NWB file after `scripts/estimate_pose.py` and then moved to an NWB file after `scripts/curate_pose_nwb.py`. They are run as:
+A pair of scripts exist to run DLC to extract pose and convert those outputs to NWB format. Those can be found in `scripts/estimate_pose.py` and `scripts/curate_pose_nwb.py` (the second can be safely ignored for now), respectively. Raw DLC outputs will be stored in a `/dlc` directory in the same directory as the NWB file after `scripts/estimate_pose.py` and then moved to an NWB file after `scripts/curate_pose_nwb.py`. They are run as:
 
 ```
 python scripts/estimate_pose.py path/to/dlc/config path/to/my/video.avi --gpu_id 0
@@ -93,4 +95,4 @@ where behavioral_acquisition_key and pose_storage_key are the names the data has
 When you'd like to visualize the components and their traces, run the `scripts/visualize_caiman_results.ipynb` notebook. Once you set the results path, select run all. The notebook shows a subset of components because of memory constraints.
 
 ## Downstream analyses
-See `scripts/downstream.ipynb` to see how to extract the data of interest.
+See `scripts/downstream_demo.ipynb` to see how to extract the data of interest.

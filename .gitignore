@@ -1,3 +1,8 @@
+# Jupyter Notebook
+Caiman_to_CellReg_Ruoxi.ipynb 
+demoData_multisession_registration.ipynb
+downstream_demo.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

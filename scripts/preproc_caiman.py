@@ -126,7 +126,7 @@ def parse_args():
     parser.add_argument(
         "--gnb",
         type=int,
-        default=-1,
+        default=0,
         help="Number of global background components (set to 0 for lower ram, -1 for faster runtime)",
     )
     parser.add_argument(
@@ -362,7 +362,7 @@ def preproc(parameters: params.CNMFParams, video_path: Path, cluster, num_proces
         base_name="memmap_",
         order="C",
         border_to_0=border_to_0,  # exclude borders, if that was done
-        dview=cluster,
+        dview=cluster,        
     )
 
     print(f"Memory-mapped file saved to {mc_memmapped_fname}")

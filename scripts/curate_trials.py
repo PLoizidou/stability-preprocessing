@@ -65,12 +65,11 @@ def organize_sessions(base_dir, start_date=None, animals=None):
 
     base_path = Path(base_dir)
 
-    # Iterate over the files
     for child in base_path.glob('*'):
         if child.is_dir() and "Mouse" in child.stem and (not animals or child.stem in animals):
             animal_dir = child
             animal_id = child.stem
-            animal_files[animal_id] = list(animal_dir.glob("*"))
+            animal_files[animal_id] = list(animal_dir.glob("**/*"))
 
     # Process files for each animal
     for animal_id, files in animal_files.items():
@@ -97,7 +96,11 @@ def curate_sessions(sessions, output_dir):
             print(f"Saving session on {date} for animal {animal_id}")
             for time, files in times.items():
                 session_id = f"ses-{date.replace('-', '')}T{time.replace('_', '')}"
-                timestamps_df = pd.read_csv([f for f in files if f.name.endswith(".csv")][0], header=None)
+                csv_files = [f for f in files if f.name.endswith(".csv")]
+                if csv_files:
+                    timestamps_df = pd.read_csv(str(csv_files[0]), header=None)
+                else:
+                    raise ValueError(f"No CSV file found for session {date} .")
                 timestamps_df["timestamps"] = pd.to_datetime(timestamps_df[0])
                 timestamps = timestamps_df["timestamps"]
                 start_time = timestamps[0]
