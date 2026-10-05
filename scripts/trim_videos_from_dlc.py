@@ -151,6 +151,43 @@ def trim_videos(
             print(f"[ERR] Trimming failed for {video_file}: {e}")
 
 
+_SNAPSHOT_RE = re.compile(r"shuffle\d+_(\d+)(?:_filtered)?\.csv$")
+
+# Snapshots vetted as the one to use, per CLAUDE.md "Run DeepLabCut pose estimation":
+# the linear project must use 160000 (100000 is stale); the T-Maze project only ever
+# had 1100000. A higher snapshot number is NOT automatically the better model -- DLC
+# keeps several checkpoints precisely so they can be compared -- so an unrecognised
+# snapshot is reported rather than silently preferred.
+PREFERRED_SNAPSHOTS = {160000, 1100000}
+
+
+def _is_filtered_csv(filename: str) -> bool:
+    return filename.endswith(".csv") and "_filtered" in filename
+
+
+def _snapshot_of(filename: str) -> int:
+    """Training iteration of the DLC snapshot that produced `filename`, or -1."""
+    m = _SNAPSHOT_RE.search(filename)
+    return int(m.group(1)) if m else -1
+
+
+def _filtered_csv_rank(filename: str):
+    """Sort key putting the preferred filtered DLC CSV first (used with reverse=True).
+
+    Ranks by (is a filtered csv, is a vetted snapshot, snapshot iteration, name), so a
+    dlc/ folder holding several snapshots resolves to the vetted one deterministically
+    instead of depending on os.walk order. The snapshot number only breaks ties among
+    equally-vetted files; it never promotes an unvetted snapshot over a vetted one.
+
+    The non-filtered branch keeps this key total over any filename. The one caller
+    pre-filters with _is_filtered_csv(), so it is not reached today.
+    """
+    if not _is_filtered_csv(filename):
+        return (0, 0, -1, "")
+    snap = _snapshot_of(filename)
+    return (1, int(snap in PREFERRED_SNAPSHOTS), snap, filename)
+
+
 def process_root(input_root: str, output_root: str, task: str, csv_only: bool):
     """
     Main processing loop.
@@ -179,9 +216,30 @@ def process_root(input_root: str, output_root: str, task: str, csv_only: bool):
         bp = None
         parent_dir = None  # directory above the DLC folder
 
-        for file in files:
-            # Identify DLC (CSV, filtered)
-            if file.endswith(".csv") and "_filtered" in file:
+        # A session's dlc/ folder can hold output from more than one model snapshot
+        # (e.g. both _100000_ and _160000_ for the linear project). os.walk returns
+        # `files` in arbitrary order, so picking the first match would make the trim
+        # source non-deterministic. Rank them instead and take the vetted snapshot
+        # (see PREFERRED_SNAPSHOTS), so the trim source is reproducible.
+        candidates = sorted(
+            (f for f in files if _is_filtered_csv(f)), key=_filtered_csv_rank, reverse=True
+        )
+        if candidates and _snapshot_of(candidates[0]) not in PREFERRED_SNAPSHOTS:
+            print(
+                f"[WARN] {root}: no filtered DLC output from a vetted snapshot "
+                f"{sorted(PREFERRED_SNAPSHOTS)}; falling back to "
+                f"'{candidates[0]}'. Check this session before trusting the trim."
+            )
+        if len(candidates) > 1:
+            print(
+                f"[INFO] {root}: {len(candidates)} filtered DLC files present, "
+                f"using '{candidates[0]}'"
+            )
+
+        for file in candidates:
+            # Invariant, not a filter: `candidates` is already built from
+            # _is_filtered_csv(), so this holds for every element.
+            if _is_filtered_csv(file):
                 print(f"[INFO] Found filtered DLC file: {file}")
                 dlc_file = os.path.join(root, file)
                 dlc_data = pd.read_csv(
@@ -205,6 +263,17 @@ def process_root(input_root: str, output_root: str, task: str, csv_only: bool):
                     print(
                         f"[WARN] No valid crossing frame found in: {dlc_file}, skipping this folder."
                     )
+                    untried = candidates[1:]
+                    if untried:
+                        # Deliberately NOT retried automatically: a lower-ranked
+                        # candidate is a different (likely stale) snapshot, and
+                        # silently trimming off worse poses is worse than skipping.
+                        print(
+                            f"[WARN] {root}: {len(untried)} other filtered DLC file(s) "
+                            f"were not tried ({', '.join(untried)}). If this session is "
+                            f"needed, check them by hand rather than assuming it has no "
+                            f"usable crossing."
+                        )
                     dlc_file = None
                     break
 
@@ -237,7 +306,7 @@ def process_root(input_root: str, output_root: str, task: str, csv_only: bool):
                         behavior_file = os.path.join(parent_dir, pf)
                         break
 
-                # Only one DLC file per folder is assumed, so break after processing it
+                # `candidates` is ranked, so the first one is the preferred snapshot
                 break
 
         # If everything needed is present, trim / write CSV

@@ -11,13 +11,17 @@ def handle_args():
     parser.add_argument('video_path', type=str, help='Path to the NWB file')
     parser.add_argument("--gpu_id", type=int, default=0, help="GPU ID to use")
     parser.add_argument("--save_summary", action='store_true', help="Save a summary of the results")
+    parser.add_argument("--destfolder", type=str, default=None,
+                        help="Where to write DLC output (default: a 'dlc' folder next to the video). "
+                             "Use this when the video does not live in its own session folder.")
     return parser.parse_args()
 
-def main(config_path: Path, video_path: Path, gpu_id: int = None, save_summary: bool = False):
-    
-    data_dir = video_path.parent / 'dlc'
+def main(config_path: Path, video_path: Path, gpu_id: int = None, save_summary: bool = False,
+         destfolder: Path = None):
+
+    data_dir = Path(destfolder) if destfolder is not None else video_path.parent / 'dlc'
     if not data_dir.exists():
-        data_dir.mkdir(exist_ok=True)
+        data_dir.mkdir(parents=True, exist_ok=True)
 
     deeplabcut.analyze_videos(
         str(config_path),
@@ -42,4 +46,5 @@ if __name__ == "__main__":
     video_path = Path(args.video_path)
     config_path = Path(args.config)
 
-    main(config_path=config_path, video_path=video_path, gpu_id=args.gpu_id, save_summary=args.save_summary)
+    main(config_path=config_path, video_path=video_path, gpu_id=args.gpu_id,
+         save_summary=args.save_summary, destfolder=args.destfolder)
