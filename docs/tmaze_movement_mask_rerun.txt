@@ -1,0 +1,324 @@
+# TMaze sessions needing movement-mask recompute
+#
+# Generated 2026-07-29 after fixing the get_movement_mask_2D speed-unit bug in
+# scripts/TMaze_combined_pipeline.ipynb (was computing px/s via dist*fps against a
+# threshold tuned for px/frame, so 'moving' was ~always True). Every directory below
+# already has a *_trimmed_positions_and_ports.csv from the OLD buggy process_session()
+# run and needs process_session() re-run to regenerate the 'moving' column with the fix.
+#
+# Only the frame-wise 'moving' column is affected -- trial segmentation, linearization,
+# and binning use their own independently-computed speed and are NOT affected by this bug.
+#
+# 214 session directories, 1 excluded (see bottom).
+
+## Mouse163  (20 sessions)
+/media/toor/Seagate2/Mouse163/Round1.5/TMaze/2024-06-10T14_53_44  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-10T14_53_44  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-11T13_08_57
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-12T15_47_58
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-13T16_38_13
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-14T16_20_17
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-15T16_53_38
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-16T08_53_08
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-17T16_23_35
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-18T13_21_30
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-19T09_20_02
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-20T14_29_27
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-21T12_51_59
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-22T15_49_19
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-23T11_04_34
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-24T13_47_01
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-25T15_59_36
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-26T15_51_27
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-27T14_33_45
+/media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-29T19_07_05
+
+## Mouse847  (17 sessions)
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-01T18_59_37
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-02T18_45_23
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-04T18_11_09
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-05T17_46_00
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-06T18_25_18
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-07T18_53_30
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-08T17_15_23
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-09T19_18_12
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-10T17_23_47
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-11T18_20_30
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-12T19_20_03
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-13T17_22_04
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-14T19_13_57
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-15T18_23_54
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-16T16_22_31
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-17T18_24_02
+/media/toor/Seagate3/YOUNG_MICE/Mouse847/Round1.5/TMaze/2025-12-18T10_29_48
+
+## Mouse943  (15 sessions)
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-04T17_09_18
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-05T16_44_52
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-06T17_27_45
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-07T17_56_20
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-08T18_55_32
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-09T17_38_53
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-10T18_46_51
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-11T17_02_23
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-12T18_00_50
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-13T18_37_22
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-14T16_59_57
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-15T17_01_14
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-16T17_50_18
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-17T17_05_56
+/media/toor/Seagate3/YOUNG_MICE/Mouse943/Round1.5/TMaze/2025-12-18T10_03_32
+
+## Mouse945  (19 sessions)
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-10T17_04_23
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-11T16_40_50
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-12T16_25_51
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-13T17_12_23
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-14T17_17_22
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-15T17_58_08
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-16T15_28_21
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-17T16_08_55
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-18T16_02_18
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-19T17_16_05
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-20T16_32_05
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-21T16_36_21
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-23T17_41_31
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-24T17_39_39
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-25T16_16_02
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-26T16_49_28
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-27T17_51_54
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-02-28T17_46_14
+/media/toor/Seagate3/YOUNG_MICE/Mouse945/Round1.5/TMaze/2026-03-01T18_12_10
+
+## Mouse946  (19 sessions)
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-10T15_59_47
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-11T15_36_24
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-12T17_23_14
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-13T16_13_34
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-14T18_21_21
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-15T17_16_12
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-16T16_25_16
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-17T17_10_03
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-18T16_43_03
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-19T16_47_52
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-20T16_58_26
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-21T16_08_19
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-23T17_13_43
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-24T18_08_50
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-25T15_49_17
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-26T17_15_21
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-27T17_20_16
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-02-28T18_13_07
+/media/toor/Seagate3/YOUNG_MICE/Mouse946/Round1.5/TMaze/2026-03-01T17_46_57
+
+## Mouse1636  (11 sessions)
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-11T14_57_14
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-12T13_59_49
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-13T14_17_20
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-14T13_18_46
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-15T17_49_08
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-18T12_23_57
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-19T12_38_45
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-25T15_25_55
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-26T13_40_48
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-28T17_37_44
+/media/toor/SeagateClean/Mouse1636/Round1.5/TMaze/2024-06-29T18_18_00
+
+## Mouse1637  (48 sessions)
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-10T17_53_09
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-11T14_04_49
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-12T13_05_34
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-13T15_32_54
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-14T17_19_31
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-15T14_59_45
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-16T09_47_26
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-17T17_20_01
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-18T15_31_59
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-19T10_16_49
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-20T13_33_38
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-21T13_47_43
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-22T16_45_33
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-23T09_09_11
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-24T15_34_25
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-25T17_37_17
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-26T14_09_02
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-27T16_15_00
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-28T14_39_53
+/media/toor/SeagateClean/Mouse1637/Round1.5/TMaze/2024-06-29T17_32_11
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-02T13_07_10
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-03T14_47_28
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-06T12_18_34
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-07T13_32_03
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-08T13_11_29
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-09T13_44_23
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-10T12_26_22
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-11T14_47_45
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-12T14_27_05
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-13T14_00_45
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-14T12_35_32
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-15T14_15_10
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-16T13_09_55
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-17T14_31_54
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-18T13_15_50
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-19T15_40_24
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-20T14_03_04
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-21T14_38_20
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-22T12_23_40
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-23T13_25_33
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-24T13_25_09
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-24T13_44_29
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-25T13_12_38
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-26T12_46_38
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-27T14_54_22
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-28T14_26_07
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-29T14_51_03
+/media/toor/SeagateClean/Mouse1637/Round3/TMaze/2024-10-30T14_07_36
+
+## Mouse1639  (65 sessions)
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-02T14_41_31  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-03T13_15_08  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-04T12_17_06  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-05T15_31_25  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-09T12_44_33  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-10T13_24_35  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-11T13_49_03  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-13T13_03_25  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-14T13_30_32  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-15T13_21_12  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-16T14_03_07  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-17T13_35_01  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-18T14_10_37  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-19T14_43_39  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-21T13_35_16  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-22T13_16_52  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-23T12_13_17  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-23T12_33_51  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-24T14_35_02  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-25T12_18_16  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-27T14_02_35  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-28T15_19_05  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-29T13_54_38  # DUPLICATE also exists on another drive, see below
+/media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-30T15_01_42  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-13T13_22_52
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-14T18_15_58
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-15T15_57_38
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-16T10_41_55
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-17T12_00_15
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-18T14_39_25
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-19T11_41_30
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-20T16_25_17
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-21T14_34_25
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-22T15_22_15
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-23T10_36_54
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-24T14_15_20
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-25T17_14_17
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-26T15_26_18
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-27T15_49_12
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-28T15_07_15
+/media/toor/SeagateClean/Mouse1639/Round1.5/TMaze/2024-06-29T19_50_39
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-02T14_41_31  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-03T13_15_08  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-04T12_17_06  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-05T15_31_25  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-09T12_44_33  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-10T13_24_35  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-11T13_49_03  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-13T13_03_25  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-14T13_30_32  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-15T13_21_12  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-16T14_03_07  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-17T13_35_01  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-18T14_10_37  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-19T14_43_39  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-21T13_35_16  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-22T13_16_52  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-23T12_13_17  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-23T12_33_51  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-24T14_35_02  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-25T12_18_16  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-27T14_02_35  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-28T15_19_05  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-29T13_54_38  # DUPLICATE also exists on another drive, see below
+/media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-30T15_01_42  # DUPLICATE also exists on another drive, see below
+
+## Cross-drive duplicates (same session present on 2 physical drives)
+## Both copies were processed with the old buggy code -- confirm which drive is
+## canonical before re-running, or just re-run both to keep them in sync.
+- Mouse163/Round1.5/TMaze/2024-06-10T14_53_44
+    /media/toor/Seagate2/Mouse163/Round1.5/TMaze/2024-06-10T14_53_44
+    /media/toor/SeagateClean/Mouse163/Round1.5/TMaze/2024-06-10T14_53_44
+- Mouse1639/Round3/TMaze/2024-10-02T14_41_31
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-02T14_41_31
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-02T14_41_31
+- Mouse1639/Round3/TMaze/2024-10-03T13_15_08
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-03T13_15_08
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-03T13_15_08
+- Mouse1639/Round3/TMaze/2024-10-04T12_17_06
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-04T12_17_06
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-04T12_17_06
+- Mouse1639/Round3/TMaze/2024-10-05T15_31_25
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-05T15_31_25
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-05T15_31_25
+- Mouse1639/Round3/TMaze/2024-10-09T12_44_33
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-09T12_44_33
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-09T12_44_33
+- Mouse1639/Round3/TMaze/2024-10-10T13_24_35
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-10T13_24_35
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-10T13_24_35
+- Mouse1639/Round3/TMaze/2024-10-11T13_49_03
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-11T13_49_03
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-11T13_49_03
+- Mouse1639/Round3/TMaze/2024-10-13T13_03_25
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-13T13_03_25
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-13T13_03_25
+- Mouse1639/Round3/TMaze/2024-10-14T13_30_32
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-14T13_30_32
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-14T13_30_32
+- Mouse1639/Round3/TMaze/2024-10-15T13_21_12
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-15T13_21_12
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-15T13_21_12
+- Mouse1639/Round3/TMaze/2024-10-16T14_03_07
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-16T14_03_07
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-16T14_03_07
+- Mouse1639/Round3/TMaze/2024-10-17T13_35_01
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-17T13_35_01
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-17T13_35_01
+- Mouse1639/Round3/TMaze/2024-10-18T14_10_37
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-18T14_10_37
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-18T14_10_37
+- Mouse1639/Round3/TMaze/2024-10-19T14_43_39
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-19T14_43_39
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-19T14_43_39
+- Mouse1639/Round3/TMaze/2024-10-21T13_35_16
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-21T13_35_16
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-21T13_35_16
+- Mouse1639/Round3/TMaze/2024-10-22T13_16_52
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-22T13_16_52
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-22T13_16_52
+- Mouse1639/Round3/TMaze/2024-10-23T12_13_17
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-23T12_13_17
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-23T12_13_17
+- Mouse1639/Round3/TMaze/2024-10-23T12_33_51
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-23T12_33_51
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-23T12_33_51
+- Mouse1639/Round3/TMaze/2024-10-24T14_35_02
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-24T14_35_02
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-24T14_35_02
+- Mouse1639/Round3/TMaze/2024-10-25T12_18_16
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-25T12_18_16
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-25T12_18_16
+- Mouse1639/Round3/TMaze/2024-10-27T14_02_35
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-27T14_02_35
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-27T14_02_35
+- Mouse1639/Round3/TMaze/2024-10-28T15_19_05
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-28T15_19_05
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-28T15_19_05
+- Mouse1639/Round3/TMaze/2024-10-29T13_54_38
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-29T13_54_38
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-29T13_54_38
+- Mouse1639/Round3/TMaze/2024-10-30T15_01_42
+    /media/toor/Seagate2/Mouse1639/Round3/TMaze/2024-10-30T15_01_42
+    /media/toor/SeagateClean/Mouse1639/Round3/TMaze/2024-10-30T15_01_42
+
+## Excluded (not re-run -- flagged by lab as unusable)
+/media/toor/Seagate2/Mouse1639/Round3/2024-10-12T15_23_44 - NEEDS TO BE REMOVED MINISCOPE UNUSBALE

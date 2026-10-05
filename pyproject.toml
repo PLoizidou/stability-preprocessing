@@ -1,0 +1,27 @@
+# Credits: Aleksandar Marinkovic.
+[project]
+name = "micehpcdrift"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "caiman",
+    "h5py>=3.16.0",
+    "ipympl>=0.10.0",
+    "ipywidgets>=8.1.8",
+    "joypy>=0.2.6",
+    "jupyterlab>=4.6.1",
+    "matplotlib>=3.11.0",
+    "numpy>=2.5.1",
+    "opencv-python>=5.0.0.93",
+    "pandas>=3.0.3",
+    "psutil>=7.2.2",
+    "pynwb>=4.0.0",
+    "scipy>=1.18.0",
+    "tables>=3.11.1",
+    "tifffile>=2026.6.1",
+    "tqdm>=4.68.4",
+]
+
+[tool.uv.sources]
+caiman = { git = "https://github.com/flatironinstitute/CaImAn.git" }

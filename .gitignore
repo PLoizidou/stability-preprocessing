@@ -168,3 +168,28 @@ cython_debug/
 data/
 MIN1PIPE/
 slurm-*.out
+# ---------------------------------------------------------------------------
+# Generated outputs & data artifacts (regenerable — never versioned)
+# ---------------------------------------------------------------------------
+results/
+figs_caiman_report_no_memmap/
+figures_oasis_demo/
+
+# Raw / derived data and large binaries
+*.avi
+*.zip
+*.hdf5
+*.h5
+*.mmap
+*.npy
+*.pkl
+*.parquet
+
+# CaImAn memmap scratch dirs (incl. stray Windows-style paths)
+caiman_data/
+C:\\*
+scripts/C:\\*
+
+# Claude Code local-only state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

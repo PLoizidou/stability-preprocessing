@@ -153,12 +153,12 @@ def save_sessions_to_nwb(sessions, output_dir):
                     session_start_time=start_time,
                     session_id=session_id,
                     experimenter="Panagiota Loizidou",
-                    lab="Lois Laboritory",
+                    lab="Lois Laboratory",
                     institution="California Institute of Technology",
                 )
                 subject = Subject(
                     subject_id=animal_id,
-                    age="PLACEHOLDER",
+                    age="P2Y/",
                     description=animal_id,
                     species="Mus musulus",
                     sex="M",

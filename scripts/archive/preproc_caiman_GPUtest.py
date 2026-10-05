@@ -1,0 +1,493 @@
+import cv2
+import logging
+import numpy as np
+import os
+import psutil
+import datetime
+from pathlib import Path
+from argparse import ArgumentParser
+
+try:
+    cv2.setNumThreads(0)
+except ():
+    pass
+
+import cupy as cp
+print("CuPy device:", cp.zeros((1,)).device)   # should print something like <CUDA Device 0>
+
+
+import caiman as cm
+from caiman.motion_correction import MotionCorrect
+from caiman.source_extraction.cnmf import cnmf, params
+
+from pynwb import NWBHDF5IO
+from pynwb.ophys import DfOverF
+
+
+def parse_args():
+    parser = ArgumentParser(
+        description="Parse arguments for motion correction and source extraction"
+    )
+
+    # general dataset-dependent parameters
+    parser.add_argument(
+        "--fr", type=int, default=25, help="Imaging rate in frames per second"
+    )
+    parser.add_argument(
+        "--decay_time",
+        type=float,
+        default=0.56,
+        help="Length of a typical transient in seconds",
+    )
+    parser.add_argument(
+        "--dxy",
+        type=float,
+        nargs=2,
+        default=[0.83, 0.83],
+        help="Spatial resolution in x and y in (um per pixel)",
+    )
+
+    # motion correction parameters
+    parser.add_argument(
+        "--strides",
+        type=int,
+        nargs=2,
+        default=[64, 64],
+        help="Start a new patch for pw-rigid motion correction every x pixels",
+    )
+    parser.add_argument(
+        "--overlaps",
+        type=int,
+        nargs=2,
+        default=[32, 32],
+        help="Overlap between patches (width of patch = strides+overlaps)",
+    )
+    parser.add_argument(
+        "--max_shifts",
+        type=int,
+        nargs=2,
+        default=[25, 25],
+        help="Maximum allowed rigid shifts (in pixels)",
+    )
+    parser.add_argument(
+        "--max_deviation_rigid",
+        type=int,
+        default=8,
+        help="Maximum shifts deviation allowed for patch with respect to rigid shifts",
+    )
+    parser.add_argument(
+        "--gSig_filt",
+        type=int,
+        nargs=2,
+        default=[8, 8],
+        help="Size of high pass spatial filtering, used in 1p data",
+    )
+    parser.add_argument(
+        "--pw_rigid",
+        type=bool,
+        default=True,
+        help="Flag for performing non-rigid motion correction",
+    )
+
+    # CNMF parameters for source extraction and deconvolution
+    parser.add_argument(
+        "--p",
+        type=int,
+        default=1,
+        help="Order of the autoregressive system (set p=2 if there is visible rise time in data)",
+    )
+    parser.add_argument(
+        "--gSig",
+        type=int,
+        nargs=2,
+        default=[5, 5],
+        help="Expected half-width of neurons in pixels (Gaussian kernel standard deviation)",
+    )
+    parser.add_argument(
+        "--merge_thr",
+        type=float,
+        default=0.65,
+        help="Merging threshold, max correlation allowed",
+    )
+    parser.add_argument(
+        "--rf",
+        type=int,
+        default=32,
+        help="Half-size of the patches in pixels (patch width is rf*2 + 1)",
+    )
+    parser.add_argument(
+        "--stride_cnmf",
+        type=int,
+        default=16,
+        help="Amount of overlap between the patches in pixels (overlap is stride_cnmf+1)",
+    )
+    parser.add_argument(
+        "--ssub", type=int, default=1, help="Spatial subsampling during initialization"
+    )
+    parser.add_argument(
+        "--tsub", default=1, type=int, help="Temporal subsampling during initialization"
+    )
+    parser.add_argument(
+        "--gnb",
+        type=int,
+        default=0,
+        help="Number of global background components (set to 0 for lower ram, -1 for faster runtime)",
+    )
+    parser.add_argument(
+        "--min_corr",
+        type=float,
+        default=0.8,
+        help="Min peak value from correlation image",
+    )
+    parser.add_argument(
+        "--min_pnr", type=float, default=6.5, help="Min peak to noise ratio"
+    )
+    parser.add_argument(
+        "--ssub_B",
+        type=int,
+        default=2,
+        help="Spatial subsampling factor for background",
+    )
+
+    # component evaluation parameters
+    parser.add_argument(
+        "--min_SNR",
+        type=float,
+        default=2.0,
+        help="c",
+    )
+    parser.add_argument(
+        "--rval_thr",
+        type=float,
+        default=0.75,
+        help="Space correlation threshold for accepting a component",
+    )
+
+    # script-specific parameters
+    parser.add_argument(
+        "--input_path",
+        type=str,
+        required=True,
+        help="Path to input session",
+    )
+    parser.add_argument(
+        "--log_severity",
+        type=str,
+        default="WARNING",
+        help="Logging severity level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    parser.add_argument(
+        "--use_log_file",
+        action="store_true",
+        help="Path to log file",
+    )
+    parser.add_argument(
+        "--delete_logs",
+        action="store_false",
+        help="Flag for deleting logs after script completion",
+    )
+    parser.add_argument(
+        "--synchronous",
+        action="store_true",
+        help="Flag for synchronous processing (useful for debugging)",
+    )
+    parser.add_argument(
+        "--save_nwb",
+        action="store_true",
+        help="Save caiman output to an NWB file. Unfortunately, this isn't implemented yet :/"
+    )
+    parser.add_argument(
+    "--delete_memmaps",
+    action="store_false",
+    help="Delete memmap files (NoRMCorre mmap and custom memmap_) after completion",
+    )
+
+
+    args = parser.parse_args()
+    for arg in vars(args):
+        print(f"{arg}: {getattr(args, arg)}")
+    return args
+
+
+def package_arguments_to_dict(args, video_path: Path):
+    parameter_dict = {
+        "fnames": str(video_path),
+        "fr": args.fr,
+        "dxy": args.dxy,
+        "decay_time": args.decay_time,
+        "strides": args.strides,
+        "overlaps": args.overlaps,
+        "max_shifts": args.max_shifts,
+        "max_deviation_rigid": args.max_deviation_rigid,
+        "gSig_filt": args.gSig_filt,
+        "pw_rigid": args.pw_rigid,
+        "p": args.p,
+        "nb": args.gnb,
+        "min_corr": args.min_corr,
+        "min_pnr": args.min_pnr,
+        "ssub_B": args.ssub_B,
+        "rf": args.rf,
+        "gSig": np.array(args.gSig),
+        "gSiz": 2 * np.array(args.gSig) + 1,
+        "stride": args.stride_cnmf,
+        "ssub": args.ssub,
+        "tsub": 1,
+        "merge_thr": args.merge_thr,
+        "min_SNR": args.min_SNR,
+        "rval_thr": args.rval_thr,
+
+        # required for CNMF-E, will not change
+        "nb_patch": 0,
+        "K": None,
+        "method_init": "corr_pnr",
+        "center_psf": True,
+        "only_init": True,
+        "use_cnn": False,
+
+        "use_cuda": True,            # turn on CUDA for NoRMCorre
+        "max_gpu_mem": 0.9,          # optional, fraction of GPU memory to use
+        "initbatch": 200,            # optional, tune for your card
+    }
+
+    return params.CNMFParams(
+        params_dict=parameter_dict
+    )
+
+
+def get_params():
+    args = parse_args()
+
+    input_path = Path(args.input_path)
+
+    cnmf_params = package_arguments_to_dict(args, input_path)
+
+    if args.log_severity == "DEBUG":
+        log_severity = logging.DEBUG
+    elif args.log_severity == "INFO":
+        log_severity = logging.INFO
+    elif args.log_severity == "WARNING":
+        log_severity = logging.WARNING
+    elif args.log_severity == "ERROR":
+        log_severity = logging.ERROR
+    elif args.log_severity == "CRITICAL":
+        log_severity = logging.CRITICAL
+    else:
+        raise ValueError(
+            "Invalid log severity level. Please choose from DEBUG, INFO, WARNING, ERROR, CRITICAL"
+        )
+    return (
+        cnmf_params,
+        input_path,
+        log_severity,
+        args.use_log_file,
+        args.delete_logs,
+        args.synchronous,
+        args.delete_memmaps,  
+    )
+
+
+def setup(use_log_file: bool, log_severity: Path, synchronous: bool):
+    if use_log_file:
+        current_datetime = datetime.datetime.now().strftime("_%Y%m%d_%H%M%S")
+        log_filename = 'caiman' + current_datetime + '.log'
+        log_path = Path(cm.paths.get_tempdir()) / log_filename
+        print(f"Will save logging data to {log_path}")
+    else:
+        log_path = None
+    # set up logging
+    logging.basicConfig(
+        format="{asctime} - {levelname} - [{filename} {funcName}() {lineno}] - pid {process} - {message}",
+        filename=log_path,
+        level=log_severity,
+        style="{",
+    )
+
+    if synchronous:
+        print("Running on one core.")
+        num_processors_to_use = 1
+    else:
+        # set env variables to avoid multithreading in dependencies !DO NOT CHANGE!
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+
+        print(
+            f"You have {psutil.cpu_count()} CPUs available in your current environment, using {psutil.cpu_count() - 1 if  psutil.cpu_count() <= 16 else 16} for parallel processing."
+        )
+        num_processors_to_use = None if psutil.cpu_count() <= 16 else 16
+
+    if "cluster" in locals():  # 'locals' contains list of current local variables
+        print("Closing previous cluster")
+        cm.stop_server(dview=cluster)
+    print("Setting up new cluster")
+    _, cluster, num_processes = cm.cluster.setup_cluster(
+        backend="multiprocessing",
+        n_processes=num_processors_to_use,
+        ignore_preexisting=False,
+    )
+    print(
+        f"Successfully initilialized multicore processing with a pool of {num_processes} CPU cores"
+    )
+
+    return cluster, num_processes
+
+
+def cleanup(cluster, delete_logs: bool, delete_memmaps: bool, memmap_paths=None):
+    cm.stop_server(dview=cluster)
+    logging.shutdown()
+
+    if delete_logs:
+        logging_dir = cm.paths.get_tempdir()
+        log_files = logging_dir.glob("caiman*.log")
+        for log_file in log_files:
+            print(f"Deleting {log_file}")
+            os.remove(log_file)
+    
+    if delete_memmaps and memmap_paths:
+        # Ensure arrays that may hold the mmap are gone before deletion
+        try:
+            import gc
+            gc.collect()
+        except Exception:
+            pass
+
+        for k in ["normcorre_mmap", "cnmf_mmap"]:
+            f = memmap_paths.get(k)
+            if f:
+                try:
+                    print(f"Deleting memmap file: {f}")
+                    Path(f).unlink(missing_ok=True)
+                except Exception as e:
+                    print(f"Failed to delete {f}: {e}")
+    
+
+def save_motion_correction_comparison(input_path: Path, output_path: Path, mot_correct: MotionCorrect):
+    movie_orig = cm.load(str(input_path), subindices=slice(2000))  # in case it was not loaded earlier
+    movie_corrected = cm.load(mot_correct.mmap_file, subindices=slice(2000))  # load motion corrected movie
+    ds_ratio = 0.2
+    cm.concatenate(
+        [
+            movie_orig.resize(1, 1, ds_ratio)
+            - mot_correct.min_mov * mot_correct.nonneg_movie,
+            movie_corrected.resize(1, 1, ds_ratio),
+        ],
+        axis=2,
+    ).save(str(output_path / "motion_correction_comparison_3.avi"))
+
+
+def preproc(parameters: params.CNMFParams, video_path: Path, cluster, num_processes: int, save_nwb=False):
+    print(parameters)
+    mot_correct = MotionCorrect(str(video_path), dview=cluster, **parameters.motion)
+    mot_correct.motion_correct(save_movie=True)
+
+    print(f"Motion correction results saved to {mot_correct.mmap_file}")
+
+    save_motion_correction_comparison(video_path, video_path.parent, mot_correct)
+
+    print("Saved motion correction comparison to disk")
+
+    border_to_0 = (
+        0 if mot_correct.border_nan == "copy" else mot_correct.border_to_0
+    )  # trim border against NaNs
+    mc_memmapped_fname = cm.save_memmap(
+        mot_correct.mmap_file,
+        base_name="memmap_",
+        order="C",
+        border_to_0=border_to_0,  # exclude borders, if that was done
+        dview=cluster,        
+    )
+
+    print(f"Memory-mapped file saved to {mc_memmapped_fname}")
+
+    Yr, dims, num_frames = cm.load_memmap(mc_memmapped_fname)
+    images = np.reshape(
+        Yr.T, [num_frames] + list(dims), order="F"
+    )  # reshape frames in standard 3d format (T x X x Y)
+
+    print("Loaded memory-mapped file into memory for CNMF processing")
+
+    cnmf_model = cnmf.CNMF(num_processes, params=parameters, dview=cluster)
+    cnmf_fit = cnmf_model.fit(images)
+
+    print("CNMF-E model fit to data")
+
+    correlation_image, _ = cm.summary_images.correlation_pnr(
+        images[::max(num_frames//1000, 1)], # subsample if needed
+        gSig=parameters.init["gSig"][0],
+        swap_dim=False,
+    ) # change swap dim if output looks weird, it is a problem with tiffile
+
+    print("Computed correlation image")
+
+    cnmf_fit.estimates.evaluate_components(images, cnmf_fit.params, dview=cluster)
+
+    print(
+        f"Num accepted/rejected: {len(cnmf_fit.estimates.idx_components)}, {len(cnmf_fit.estimates.idx_components_bad)}"
+    )
+
+    cnmf_fit.estimates.detrend_df_f(
+        quantileMin=8, frames_window=250, flag_auto=False, use_residuals=False, detrend_only=True
+    )
+
+    cnmf_fit.estimates.Cn = (
+        correlation_image  # squirrel away correlation image with cnmf object
+    )
+
+    # save caiman format
+    caiman_results_path = video_path.parent / "caiman3" / "caiman_results.hdf5"
+    caiman_results_path.parent.mkdir(exist_ok=True, parents=True)
+    cnmf_fit.save(str(caiman_results_path))
+    print(f"Results saved to {str(caiman_results_path)}!")
+
+    if save_nwb:
+
+        raise NotImplementedError(
+            "Unfortunately, saving caiman results to an NWB file isn't fully implemented yet :/"
+        )
+
+        # Hacky change to cnmf object to allow builtin save
+        cnmf_model.estimates.cnn_preds = None
+        cnmf_model.estimates.b = np.zeros((cnmf_model.estimates.A.shape[0], 1))
+        cnmf_model.estimates.f = np.zeros((1, cnmf_model.estimates.C.shape[1]))
+
+        # save nwb
+        cnmf_model.estimates.save_NWB(
+            str(nwb_path), 
+            imaging_series_name="gcamp",
+            imaging_rate=parameters.data["fr"],
+            imaging_plane_name="ImagingPlane",
+        )
+
+        # Add F_dff later since builtin save doesn't
+        with NWBHDF5IO(str(nwb_path), 'r+') as io:
+            nwb = io.read()
+            f_dff = DfOverF()
+            f_dff.add_roi_response_series(
+                "f_dff",
+                data=cnmf_model.estimates.F_dff,
+                rois=nwb.processing["ophys"].get("Fluorescence").roi_response_series["RoiResponseSeries"].rois,
+                unit="N/A",
+                timestamps=nwb.acquisition["gcamp"].timestamps,
+            )
+            nwb.processing["ophys"].add_data_interface(f_dff)
+            io.write(nwb)
+            io.close()
+        
+        print(f"Results saved!")
+    return {
+    "normcorre_mmap": mot_correct.mmap_file,
+    "cnmf_mmap": mc_memmapped_fname,
+}
+
+
+
+def main():
+    cnmf_params, input_path, log_severity, use_log_file, delete_logs, synchronous, delete_memmaps = get_params()
+    cluster, n_processes = setup(use_log_file, log_severity, synchronous)
+    memmap_paths = preproc(cnmf_params, input_path, cluster, n_processes)
+    cleanup(cluster, delete_logs, delete_memmaps=delete_memmaps, memmap_paths=memmap_paths)
+    print("Done!")
+
+
+if __name__ == "__main__":
+    main()

@@ -12,6 +12,11 @@ try:
 except ():
     pass
 
+
+# Create and set your custom memmap directory
+os.environ['CAIMAN_DATA'] = "/media/toor/Seagate2/caiman_data"
+
+
 import caiman as cm
 from caiman.motion_correction import MotionCorrect
 from caiman.source_extraction.cnmf import cnmf, params
@@ -96,7 +101,7 @@ def parse_args():
         "--gSig",
         type=int,
         nargs=2,
-        default=[8, 8],
+        default=[5, 5],
         help="Expected half-width of neurons in pixels (Gaussian kernel standard deviation)",
     )
     parser.add_argument(
@@ -150,7 +155,7 @@ def parse_args():
         "--min_SNR",
         type=float,
         default=2.0,
-        help="Signal to noise ratio for accepting a component",
+        help="c",
     )
     parser.add_argument(
         "--rval_thr",
@@ -221,7 +226,7 @@ def package_arguments_to_dict(args, video_path: Path):
         "gSiz": 2 * np.array(args.gSig) + 1,
         "stride": args.stride_cnmf,
         "ssub": args.ssub,
-        "tsub": args.tsub if args.tsub is not None else args.fr // 10 + 1,
+        "tsub": 1,
         "merge_thr": args.merge_thr,
         "min_SNR": args.min_SNR,
         "rval_thr": args.rval_thr,
@@ -340,7 +345,7 @@ def save_motion_correction_comparison(input_path: Path, output_path: Path, mot_c
             movie_corrected.resize(1, 1, ds_ratio),
         ],
         axis=2,
-    ).save(str(output_path / "motion_correction_comparison.avi"))
+    ).save(str(output_path / "motion_correction_comparison_5.avi"))
 
 
 def preproc(parameters: params.CNMFParams, video_path: Path, cluster, num_processes: int, save_nwb=False):
@@ -402,7 +407,7 @@ def preproc(parameters: params.CNMFParams, video_path: Path, cluster, num_proces
     )
 
     # save caiman format
-    caiman_results_path = video_path.parent / "caiman" / "caiman_results.hdf5"
+    caiman_results_path = video_path.parent / "caiman5" / "caiman_results.hdf5"
     caiman_results_path.parent.mkdir(exist_ok=True, parents=True)
     cnmf_fit.save(str(caiman_results_path))
     print(f"Results saved to {str(caiman_results_path)}!")

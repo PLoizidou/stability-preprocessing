@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from caiman.source_extraction.cnmf import params; p = params.CNMFParams\\(\\); groups = {'patch': p.patch, 'init': p.init, 'motion': p.motion, 'spatial': p.spatial, 'temporal': p.temporal, 'preprocess': p.preprocess}; [print\\(g, p['ring_size_factor']\\) for g, p in groups.items\\(\\) if 'ring_size_factor' in p]\")",
+      "Bash(python3 -c \"import inspect, caiman.utils.visualization as v; print\\(inspect.signature\\(v.inspect_correlation_pnr\\)\\)\")",
+      "Read(//media/toor/Seagate3/caiman_data/temp/**)",
+      "WebSearch",
+      "Read(//home/toor/miniconda3/envs/stability-preprocessing-keras/lib/python3.11/site-packages/caiman/source_extraction/cnmf/**)",
+      "Bash(lscpu)",
+      "Bash(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)",
+      "Bash(python3 -c ' *)",
+      "Bash(chmod +x /home/toor/Desktop/stability-preprocessing/scripts/run_all_caiman.sh)",
+      "Read(//media/toor/**)",
+      "Read(//home/toor/caiman_data/**)",
+      "Bash(ls ~/.config/Code/User/History 2>/dev/null | wc -l; echo \"---\"; grep -rl \"compare_caiman_runs\" ~/.config/Code/User/History/*/entries.json 2>/dev/null)",
+      "Read(//home/toor/.config/Code/User/History/**)",
+      "Bash(date -d @$\\(\\(1776888027012/1000\\)\\))",
+      "Bash(date -d @$\\(\\(1776888274047/1000\\)\\))",
+      "Read(//home/toor/.config/Code/User/History/10ef1d24/**)",
+      "Bash(echo \"=== CURRENT ===\"; grep -o '\"BASE_DIR[^\"]*\"[^,]*' /home/toor/Desktop/stability-preprocessing/scripts/compare_caiman_runs.ipynb | head -20 *)",
+      "Bash(ls -la /media/toor/ 2>&1; echo \"---\"; ls -la \"/media/toor/Seagate3/YOUNG_MICE/Mouse946/test_cropping\" 2>&1)",
+      "Bash(cd /home/toor/Desktop/stability-preprocessing && mkdir -p scripts/data_audit docs && ls scripts/data_audit docs 2>/dev/null | head)",
+      "Bash(mkdir -p scripts/data_audit/cache && cp /tmp/claude-1000/-home-toor-Desktop-stability-preprocessing/69fe3bb6-ee14-4995-afdb-ea9756bd129d/scratchpad/ls_*.tsv scripts/data_audit/cache/ && ls -la scripts/data_audit/cache/)",
+      "Bash(python scripts/data_audit/build_headcount.py)",
+      "Bash(python3 -)"
+    ],
+    "additionalDirectories": [
+      "/home/toor/Desktop/stability-preprocessing/scripts",
+      "/tmp/claude-1000/-home-toor-Desktop-stability-preprocessing/69fe3bb6-ee14-4995-afdb-ea9756bd129d/scratchpad"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/toor/Desktop/stability-preprocessing/.claude/hooks/code_critic_gate.sh",
+            "timeout": 15,
+            "statusMessage": "Checking for unreviewed code changes..."
+          }
+        ]
+      }
+    ]
+  }
+}
